@@ -7,7 +7,6 @@ import frappe
 from pprint import pprint
 from frappe.utils import file_manager
 from frappe.model.document import Document
-import re
 from datetime import datetime
 import sys
 
@@ -62,6 +61,7 @@ class ADNImport(Document):
         rechnungen = []
         rechnung ={}
         with open (csv_file,"r", encoding = "utf-8") as file:
+
             
             lines = file.readlines()
             aktuelle_rg = ""
@@ -128,7 +128,8 @@ class ADNImport(Document):
             return True
 
         else:
-             return False     
+            #self.log_list.append("CSV Format entspricht nicht dem Standartformat")
+            return False     
         
 
     def create_erpn_invoice(self, rechnung):
@@ -141,7 +142,7 @@ class ADNImport(Document):
         rechnung_doc.introduction_text = self.settings_doc.introduction_text
 
         for position in rechnung["positionen"]:
-            artikel_liste = frappe.get_all("Item", filters={"hersteller_art_nr": position["artikel"]})
+            artikel_liste = frappe.get_all("Item", filters={"hersteller_artikel_nummer": position["artikel"]})
             
             if len(artikel_liste) == 1:
                 artikel_doc = frappe.get_doc("Item", artikel_liste[0]["name"])
