@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include adnconnect *.css
+recursive-include adnconnect *.csv
+recursive-include adnconnect *.html
+recursive-include adnconnect *.ico
+recursive-include adnconnect *.js
+recursive-include adnconnect *.json
+recursive-include adnconnect *.md
+recursive-include adnconnect *.png
+recursive-include adnconnect *.py
+recursive-include adnconnect *.svg
+recursive-include adnconnect *.txt
+recursive-exclude adnconnect *.pyc

@@ -1,0 +1,59 @@
+{
+ "creation": "2021-05-31 21:53:23.974979",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "datei",
+  "import_starten",
+  "log",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "import_starten",
+   "fieldtype": "Button",
+   "label": "Import starten",
+   "options": "do_import"
+  },
+  {
+   "fieldname": "datei",
+   "fieldtype": "Attach",
+   "label": "Datei"
+  },
+  {
+   "fieldname": "log",
+   "fieldtype": "Long Text",
+   "label": "Log"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "neu\nfehlerhaft\nerfolgreich"
+  }
+ ],
+ "modified": "2021-07-06 14:25:23.102541",
+ "modified_by": "Administrator",
+ "module": "Adnconnect",
+ "name": "ADN Import",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
