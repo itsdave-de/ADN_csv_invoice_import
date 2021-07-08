@@ -5,6 +5,7 @@
  "engine": "InnoDB",
  "field_order": [
   "default_customer",
+  "company",
   "introduction_text"
  ],
  "fields": [
@@ -18,10 +19,16 @@
    "fieldname": "introduction_text",
    "fieldtype": "Text Editor",
    "label": "Introduction Text"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
   }
  ],
  "issingle": 1,
- "modified": "2021-07-08 04:49:20.715570",
+ "modified": "2021-07-09 01:43:30.491402",
  "modified_by": "Administrator",
  "module": "Adnconnect",
  "name": "ADN Import Settings",
