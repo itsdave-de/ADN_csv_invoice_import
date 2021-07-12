@@ -8,7 +8,8 @@ from pprint import pprint
 from frappe.utils import file_manager
 from frappe.model.document import Document
 from datetime import datetime
-import sys
+import pandas as pd
+import csv
 
 
 class ADNImport(Document):
@@ -141,6 +142,9 @@ class ADNImport(Document):
         rechnung_doc.customer = rechnung["kdnr"]
         rechnung_doc.introduction_text = self.settings_doc.introduction_text
         rechnung_doc.company = self.settings_doc.company
+        rechnung_doc.payment_terms_template = self.settings_doc.payment_terms_template
+        rechnung_doc.tc_name = self.settings_doc.tc_name
+        
 
         for position in rechnung["positionen"]:
             artikel_liste = frappe.get_all("Item", filters={"hersteller_artikel_nummer": position["artikel"]})

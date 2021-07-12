@@ -6,6 +6,8 @@
  "field_order": [
   "default_customer",
   "company",
+  "payment_terms_template",
+  "tc_name",
   "introduction_text"
  ],
  "fields": [
@@ -25,10 +27,22 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company"
+  },
+  {
+   "fieldname": "tc_name",
+   "fieldtype": "Link",
+   "label": "Terms and Conditions",
+   "options": "Terms and Conditions"
+  },
+  {
+   "fieldname": "payment_terms_template",
+   "fieldtype": "Link",
+   "label": "Payment Terms Template",
+   "options": "Payment Terms Template"
   }
  ],
  "issingle": 1,
- "modified": "2021-07-09 01:43:30.491402",
+ "modified": "2021-07-12 08:55:31.132078",
  "modified_by": "Administrator",
  "module": "Adnconnect",
  "name": "ADN Import Settings",
