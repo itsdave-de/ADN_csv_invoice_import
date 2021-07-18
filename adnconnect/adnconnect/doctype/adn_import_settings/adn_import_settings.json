@@ -8,7 +8,8 @@
   "company",
   "payment_terms_template",
   "tc_name",
-  "introduction_text"
+  "introduction_text",
+  "title_and_preatext"
  ],
  "fields": [
   {
@@ -39,10 +40,15 @@
    "fieldtype": "Link",
    "label": "Payment Terms Template",
    "options": "Payment Terms Template"
+  },
+  {
+   "fieldname": "title_and_preatext",
+   "fieldtype": "Small Text",
+   "label": "Title and Preatext"
   }
  ],
  "issingle": 1,
- "modified": "2021-07-12 08:55:31.132078",
+ "modified": "2021-07-18 17:00:44.211714",
  "modified_by": "Administrator",
  "module": "Adnconnect",
  "name": "ADN Import Settings",

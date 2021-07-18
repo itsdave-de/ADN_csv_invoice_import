@@ -7,7 +7,8 @@
   "datei",
   "import_starten",
   "log",
-  "status"
+  "status",
+  "title_and_preatext"
  ],
  "fields": [
   {
@@ -31,9 +32,14 @@
    "fieldtype": "Select",
    "label": "Status",
    "options": "neu\nfehlerhaft\nerfolgreich"
+  },
+  {
+   "fieldname": "title_and_preatext",
+   "fieldtype": "Data",
+   "label": "Title and Preatext"
   }
  ],
- "modified": "2021-07-06 14:25:23.102541",
+ "modified": "2021-07-13 12:37:40.445621",
  "modified_by": "Administrator",
  "module": "Adnconnect",
  "name": "ADN Import",
