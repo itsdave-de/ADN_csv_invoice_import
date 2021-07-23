@@ -1,4 +1,5 @@
 {
+ "autoname": "ADNI-.##### ",
  "creation": "2021-05-31 21:53:23.974979",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -7,8 +8,7 @@
   "datei",
   "import_starten",
   "log",
-  "status",
-  "title_and_preatext"
+  "status"
  ],
  "fields": [
   {
@@ -32,14 +32,9 @@
    "fieldtype": "Select",
    "label": "Status",
    "options": "neu\nfehlerhaft\nerfolgreich"
-  },
-  {
-   "fieldname": "title_and_preatext",
-   "fieldtype": "Data",
-   "label": "Title and Preatext"
   }
  ],
- "modified": "2021-07-13 12:37:40.445621",
+ "modified": "2021-07-20 10:16:47.944825",
  "modified_by": "Administrator",
  "module": "Adnconnect",
  "name": "ADN Import",

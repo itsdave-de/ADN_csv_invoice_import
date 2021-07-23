@@ -9,6 +9,7 @@ from frappe.utils import file_manager
 from frappe.model.document import Document
 from datetime import datetime
 import pandas as pd
+import calendar
 
 
 
@@ -23,33 +24,37 @@ class ADNImport(Document):
         rechnungen = self.get_invoice_dict_from_csv()
         
         for rechnung in rechnungen:
-            log_eintrag_vorhanden = False
-            if self.check_adn_invoice_number(rechnung):
-               
+            if rechnung["art"] == "Gutschrift":
+                log_list.append("ADN-Rechnung " + str(rechnung["adn_rg"]) + " für Kunden " + str(rechnung["kunde"]) + " wurde nicht erstellt, da es sich um eine Gutschrift handelt")
+            else:
 
-                customer_exists = self.check_erpn_customer(rechnung["kdnr"])
+                log_eintrag_vorhanden = False
+                if self.check_adn_invoice_number(rechnung):
                 
-                
-                if not customer_exists:
-                    rechnung["kdnr"] = self.settings_doc.default_customer
-                    log_list.append("ADN-Rechnung " + str(rechnung["adn_rg"]) + " für Kunden " + str(rechnung["kunde"]) + " ist vorbereitet, kann aber nicht eindeutig zugeordnet werden")
-                    log_eintrag_vorhanden = True
-                return_dict = self.create_erpn_invoice(rechnung)
-                if return_dict["status"]:
-                    count_erfolgreich_erstellte_rechnung += 1
-                else:
-                    log_list.append("Rechnung mit ADN-Rechnungs-Nr.: " + str(rechnung["adn_rg"]) + " konnte nicht erstellt werden:")
-                    log_eintrag_vorhanden = True
-                    for i in return_dict["fehler"]:
-                        log_list.append(i)
-                if log_eintrag_vorhanden:
-                    self.status = "fehlerhaft"
-                    self.save()
-                    log_list.append("#############################")
 
-                else:
-                    self.status = "erfolgreich"
-                    self.save()
+                    customer_exists = self.check_erpn_customer(rechnung["kdnr"])
+                    
+                    
+                    if not customer_exists:
+                        rechnung["kdnr"] = self.settings_doc.default_customer
+                        log_list.append("ADN-Rechnung " + str(rechnung["adn_rg"]) + " für Kunden " + str(rechnung["kunde"]) + " ist vorbereitet, kann aber nicht eindeutig zugeordnet werden")
+                        log_eintrag_vorhanden = True
+                    return_dict = self.create_erpn_invoice(rechnung)
+                    if return_dict["status"]:
+                        count_erfolgreich_erstellte_rechnung += 1
+                    else:
+                        log_list.append("Rechnung mit ADN-Rechnungs-Nr.: " + str(rechnung["adn_rg"]) + " konnte nicht erstellt werden:")
+                        log_eintrag_vorhanden = True
+                        for i in return_dict["fehler"]:
+                            log_list.append(i)
+                    if log_eintrag_vorhanden:
+                        self.status = "fehlerhaft"
+                        self.save()
+                        log_list.append("#############################")
+
+                    else:
+                        self.status = "erfolgreich"
+                        self.save()
            
         log_list.append(str(count_erfolgreich_erstellte_rechnung) + " Rechnungen wurden erstellt")
         log_str = ""
@@ -94,23 +99,30 @@ class ADNImport(Document):
                     rechnung["kdnr"] =  pos['Endkunde_Reference']
                     rechnung["adn_rg"] = pos['RECHNUNG']
                     rechnung["kunde"] = pos['Endkunde']
+                    rechnung["art"] = pos['Rechnungsart']
                     rechnung["positionen"] = []
                          
 
                 else:
                     #für jede weitere Zeile einer Rechnung erkennen wir
                     #die weiteren Positionen
+                    von_dt = datetime.strptime (pos['Wartungsbeginn'],"%d.%m.%Y %H:%M:%S")
+                    bis_dt = datetime.strptime (pos['Wartungsende'],"%d.%m.%Y %H:%M:%S")
+                    time_delta = bis_dt - von_dt 
                                     
                     position = {"artikel": pos['HERSTELLERNUMMER'],
-                            "von": pos['Wartungsbeginn'],
-                            "bis": pos['Wartungsende'], 
+                            "von": von_dt,
+                            "bis": bis_dt,  
                             "menge": pos['MENGE'], 
-                            "preis": pos['Listpreis']}
+                            "preis": pos['Listpreis'],
+                            "wartungsdauer": time_delta.days+1,
+                            "gesamtdauer": calendar.monthrange(von_dt.year,von_dt.month)[1]}
                                         
                     rechnung["positionen"].append(position)
                         
                 
             rechnungen.append(rechnung)
+            #pprint(rechnungen)
              
             
             return(rechnungen)
@@ -163,7 +175,7 @@ class ADNImport(Document):
         rechnung_doc.company = self.settings_doc.company
         rechnung_doc.payment_terms_template = self.settings_doc.payment_terms_template
         rechnung_doc.tc_name = self.settings_doc.tc_name
-        rechnung_doc.title = self.settings_doc.title_and_preatext+ " " + str(rechnung["kunde"])
+        rechnung_doc.title = str(self.settings_doc.title_and_prefix) + " " + str(rechnung["kunde"])
         rechnung_doc.adn_invoice_number = rechnung["adn_rg"]
 
 
@@ -172,23 +184,27 @@ class ADNImport(Document):
         
             if len(artikel_liste) == 1:
                 artikel_doc = frappe.get_doc("Item", artikel_liste[0]["name"])
-            
+                if float(position["preis"]) >= 0:
+                    menge = position["menge"]*position["wartungsdauer"]/position["gesamtdauer"]
+                else:
+                    menge = -position["menge"]*position["wartungsdauer"]/position["gesamtdauer"]
+                
 
                 rechnung_doc_artikel = frappe.get_doc({
                     "doctype": "Sales Invoice Item",
                     "item_code": artikel_doc.name,
-                    "qty": position["menge"]
+                    "qty": menge
                     })
             
             
 
-                von_dt = datetime.strptime (position["von"],"%d.%m.%Y %H:%M:%S")
-                von_str = datetime.strftime(von_dt, "%d.%m.%Y")
-                bis_dt = datetime.strptime (position["bis"],"%d.%m.%Y %H:%M:%S")
-                bis_str = datetime.strftime(bis_dt, "%d.%m.%Y")
+                #von_dt = datetime.strptime (position["von"],"%d.%m.%Y %H:%M:%S")
+                von_str = datetime.strftime(position["von"], "%d.%m.%Y")
+                #bis_dt = datetime.strptime (position["bis"],"%d.%m.%Y %H:%M:%S")
+                bis_str = datetime.strftime(position["bis"], "%d.%m.%Y")
 
 
-                rechnung_doc_artikel.description = artikel_doc.description + "<br>Zeitraum von " + von_str+ " bis "+ bis_str
+                rechnung_doc_artikel.description = artikel_doc.item_name + "<br>Zeitraum von " + von_str+ " bis "+ bis_str
                 rechnung_doc.append("items", rechnung_doc_artikel)
 
             else:
