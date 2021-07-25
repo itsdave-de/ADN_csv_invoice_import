@@ -7,8 +7,11 @@
  "field_order": [
   "datei",
   "import_starten",
+  "zustimmung",
   "log",
-  "status"
+  "status",
+  "rechnungsdatum",
+  "anzahl_der_lizenzen"
  ],
  "fields": [
   {
@@ -30,11 +33,31 @@
   {
    "fieldname": "status",
    "fieldtype": "Select",
+   "in_list_view": 1,
    "label": "Status",
    "options": "neu\nfehlerhaft\nerfolgreich"
+  },
+  {
+   "bold": 1,
+   "fieldname": "rechnungsdatum",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Eingangsrechnungen"
+  },
+  {
+   "fieldname": "anzahl_der_lizenzen",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Anzahl der Lizenzen"
+  },
+  {
+   "default": "0",
+   "fieldname": "zustimmung",
+   "fieldtype": "Check",
+   "label": "Import auch bei ver\u00e4ndertem CSV-Format durchf\u00fchren? <br> Nach Zustimmung Import erneut durchf\u00fchren"
   }
  ],
- "modified": "2021-07-20 10:16:47.944825",
+ "modified": "2021-07-25 13:26:02.044453",
  "modified_by": "Administrator",
  "module": "Adnconnect",
  "name": "ADN Import",

@@ -12,7 +12,6 @@ import pandas as pd
 import calendar
 
 
-
 class ADNImport(Document):
     log_list = []
     settings_doc = frappe.get_single("ADN Import Settings")
@@ -22,11 +21,16 @@ class ADNImport(Document):
         
         count_erfolgreich_erstellte_rechnung = 0
         rechnungen = self.get_invoice_dict_from_csv()
-        
+        lizenzen = 0
         for rechnung in rechnungen:
+            for position in rechnung["positionen"]:
+                if float(position["preis"])>0:
+                    lizenzen += int(position["menge"])
+            
             if rechnung["art"] == "Gutschrift":
                 log_list.append("ADN-Rechnung " + str(rechnung["adn_rg"]) + " für Kunden " + str(rechnung["kunde"]) + " wurde nicht erstellt, da es sich um eine Gutschrift handelt")
             else:
+
 
                 log_eintrag_vorhanden = False
                 if self.check_adn_invoice_number(rechnung):
@@ -55,6 +59,10 @@ class ADNImport(Document):
                     else:
                         self.status = "erfolgreich"
                         self.save()
+        
+        rechnungsdatum = datetime.strptime(rechnung["datum"],"%d.%m.%Y %H:%M:%S")    
+        self.rechnungsdatum = datetime.strftime(rechnungsdatum, "%m.%Y")
+        self.anzahl_der_lizenzen = lizenzen
            
         log_list.append(str(count_erfolgreich_erstellte_rechnung) + " Rechnungen wurden erstellt")
         log_str = ""
@@ -87,12 +95,12 @@ class ADNImport(Document):
                                             
                 if pos['RECHNUNG'] != aktuelle_rg:
                                         
-                       
+                        
                     if aktuelle_rg != "":
                         rechnungen.append(rechnung)
                                         
                     aktuelle_rg = pos['RECHNUNG']
-   
+
                                     
                     rechnung ={}
                     #Beginn neuer Rechnung, Kopfdaten auslesen
@@ -100,8 +108,9 @@ class ADNImport(Document):
                     rechnung["adn_rg"] = pos['RECHNUNG']
                     rechnung["kunde"] = pos['Endkunde']
                     rechnung["art"] = pos['Rechnungsart']
+                    rechnung["datum"] = pos['DATUM']
                     rechnung["positionen"] = []
-                         
+                            
 
                 else:
                     #für jede weitere Zeile einer Rechnung erkennen wir
@@ -123,15 +132,13 @@ class ADNImport(Document):
                 
             rechnungen.append(rechnung)
             #pprint(rechnungen)
-             
+                
             
             return(rechnungen)
         else:
             frappe.msgprint("ACHTUNG Rechnungen konnten nicht erstellt werden. CSV- Format stimmt nicht mit dem Standartformat überein")
-                
+                    
         
-            
-
     def validate_csv(self, erste_zeile):
          
         soll_header = ['RECHNUNG', 'DATUM', 'KUNDENNR', 'DEBITORKONTO', 'SACHBEARBEITER',
@@ -153,8 +160,12 @@ class ADNImport(Document):
 
         else:
             self.log_list.append("CSV Format entspricht nicht dem Standartformat")
-            return False   
-
+            if self.zustimmung == 1:
+                return True
+            else:
+                return False  
+       
+    
     def check_adn_invoice_number(self,rechnung):
         ausgangs_rechnungen =  frappe.get_all("Sales Invoice", filters={"adn_invoice_number": rechnung["adn_rg"] })
         if len(ausgangs_rechnungen) == 0:
@@ -234,5 +245,3 @@ class ADNImport(Document):
             
             if len(kunden_liste) == 1:
                 return True
-
-            
