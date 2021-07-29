@@ -5,6 +5,7 @@
  "engine": "InnoDB",
  "field_order": [
   "title_and_prefix",
+  "title_and_prefix_credit_note",
   "default_customer",
   "company",
   "payment_terms_template",
@@ -45,10 +46,15 @@
    "fieldname": "title_and_prefix",
    "fieldtype": "Data",
    "label": "Title and Prefix"
+  },
+  {
+   "fieldname": "title_and_prefix_credit_note",
+   "fieldtype": "Data",
+   "label": "Title and Prefix Credit Note"
   }
  ],
  "issingle": 1,
- "modified": "2021-07-20 10:15:10.310164",
+ "modified": "2021-07-29 13:29:40.436301",
  "modified_by": "Administrator",
  "module": "Adnconnect",
  "name": "ADN Import Settings",
