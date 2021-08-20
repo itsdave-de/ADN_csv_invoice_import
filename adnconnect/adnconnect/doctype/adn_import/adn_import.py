@@ -219,6 +219,11 @@ class ADNImport(Document):
         rechnung_doc.company = self.settings_doc.company
         rechnung_doc.payment_terms_template = self.settings_doc.payment_terms_template
         rechnung_doc.tc_name = self.settings_doc.tc_name
+
+        tac_doc = frappe.get_doc("Terms and Conditions", self.settings_doc.tc_name)
+        rechnung_doc.terms = tac_doc.terms
+        rechnung_doc.taxes_and_charges = self.settings_doc.taxes_and_charges
+        rechnung_doc.set_taxes()
         
         rechnung_doc.adn_invoice_number = rechnungen["adn_rg"]
 
@@ -260,6 +265,8 @@ class ADNImport(Document):
                     return_dict["fehler"].append(meldung)
                 
         if len(return_dict["fehler"]) == 0:
+            rechnung_doc.save()
+            rechnung_doc.set_taxes()
             rechnung_doc.save()
             rg_nr = rechnung_doc.name
             return_dict["status"] = rg_nr

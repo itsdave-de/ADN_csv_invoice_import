@@ -10,7 +10,8 @@
   "company",
   "payment_terms_template",
   "tc_name",
-  "introduction_text"
+  "introduction_text",
+  "taxes_and_charges"
  ],
  "fields": [
   {
@@ -51,10 +52,16 @@
    "fieldname": "title_and_prefix_credit_note",
    "fieldtype": "Data",
    "label": "Title and Prefix Credit Note"
+  },
+  {
+   "fieldname": "taxes_and_charges",
+   "fieldtype": "Link",
+   "label": "Taxes and Charges",
+   "options": "Sales Taxes and Charges Template"
   }
  ],
  "issingle": 1,
- "modified": "2021-07-29 13:29:40.436301",
+ "modified": "2021-08-20 14:10:26.952131",
  "modified_by": "Administrator",
  "module": "Adnconnect",
  "name": "ADN Import Settings",

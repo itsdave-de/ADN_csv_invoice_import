@@ -57,7 +57,7 @@
    "label": "Import auch bei ver\u00e4ndertem CSV-Format durchf\u00fchren? <br> Nach Zustimmung Import erneut durchf\u00fchren"
   }
  ],
- "modified": "2021-07-25 13:26:02.044453",
+ "modified": "2021-08-20 14:09:27.599544",
  "modified_by": "Administrator",
  "module": "Adnconnect",
  "name": "ADN Import",
@@ -76,7 +76,6 @@
    "write": 1
   }
  ],
- "quick_entry": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "track_changes": 1
