@@ -10,7 +10,6 @@ from frappe.model.document import Document
 from datetime import datetime
 import pandas as pd
 import calendar
-#test
 
 class ADNImport(Document):
     log_list = []
