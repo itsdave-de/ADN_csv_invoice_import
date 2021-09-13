@@ -10,6 +10,7 @@ from frappe.model.document import Document
 from datetime import datetime
 import pandas as pd
 import calendar
+from erpnext.accounts.party import set_taxes as party_st
 
 class ADNImport(Document):
     log_list = []
@@ -185,10 +186,11 @@ class ADNImport(Document):
             return True
 
         else:
-            self.log_list.append("CSV Format entspricht nicht dem Standartformat")
             if self.zustimmung == 1:
+                self.log_list.append("CSV Format entspricht zwar nicht dem Standartformat, der Import wurde trotzdem durchgeführt")
                 return True
             else:
+                self.log_list.append("CSV Format entspricht nicht dem Standartformat")
                 return False  
        
     
@@ -205,6 +207,8 @@ class ADNImport(Document):
         rechnung_doc = frappe.get_doc({
                 "doctype": "Sales Invoice"
                 })
+        
+			
         rechnungsdatum = datetime.strptime(rechnungen["datum"],"%d.%m.%Y %H:%M:%S")
         rechnungsmonat =  datetime.strftime(rechnungsdatum, "%m.%Y")
         
@@ -222,8 +226,20 @@ class ADNImport(Document):
 
         tac_doc = frappe.get_doc("Terms and Conditions", self.settings_doc.tc_name)
         rechnung_doc.terms = tac_doc.terms
-        rechnung_doc.taxes_and_charges = self.settings_doc.taxes_and_charges
-        rechnung_doc.set_taxes()
+        
+        rechnung_doc.taxes_and_charges = party_st(rechnung_doc.customer, "Customer", rechnung_doc.posting_date, rechnung_doc.company)
+        taxes = frappe.get_doc("Sales Taxes and Charges Template", rechnung_doc.taxes_and_charges).taxes
+        #im Doctype hinterlegte Steuern müssen der Rechnung angefügt werden.
+        #Die Berechnung der Beträge geschieht automatisch
+        for tax in taxes:
+            new_tax = frappe.get_doc({
+                "doctype": "Sales Taxes and Charges",
+                "charge_type": tax.charge_type,
+                "account_head": tax.account_head,
+                "rate": tax.rate,
+                "description": tax.description
+            })
+            rechnung_doc.append("taxes", new_tax)
         
         rechnung_doc.adn_invoice_number = rechnungen["adn_rg"]
 
