@@ -16,6 +16,7 @@ class ADNImport(Document):
     log_list = []
     settings_doc = frappe.get_single("ADN Import Settings")
 
+    @frappe.whitelist()
     def do_import(self):
         
         log_list = self.log_list 
