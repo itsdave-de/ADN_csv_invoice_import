@@ -223,7 +223,7 @@ class ADNImport(Document):
         rechnung_doc.company = self.settings_doc.company
         rechnung_doc.payment_terms_template = self.settings_doc.payment_terms_template
         rechnung_doc.tc_name = self.settings_doc.tc_name
-
+ 
         tac_doc = frappe.get_doc("Terms and Conditions", self.settings_doc.tc_name)
         rechnung_doc.terms = tac_doc.terms
         
