@@ -3,6 +3,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
+from os import error
 import frappe
 from pprint import pprint
 from frappe.utils import file_manager
@@ -95,7 +96,7 @@ class ADNImport(Document):
                 gs_dict["positionen"] = gs_positionen_neu_list                
                 rg_dict["positionen"] = rg_positionen_neu_list
 
-                gs_dict["adn_rg"] = "GS-" + str(gs_dict["adn_rg"])
+                gs_dict["adn_rg"] = "GS-" + str(gs_dict["adn_rg"])+str(gs_dict["kdnr"])
                 rg_dict["gs_erforderlich"] = False
                 
                 if len(gs_dict["positionen"]) > 0:
@@ -113,26 +114,30 @@ class ADNImport(Document):
         rechnungen = []
         rechnung ={}
         df = pd.read_csv(csv_file, encoding='utf-8-sig', delimiter=";", decimal=",") 
+        
+        # df['Wartungsbeginn'] = pd.to_datetime(df['Wartungsbeginn'])
+        # df['Wartungsende'] = pd.to_datetime(df['Wartungsende'])
         df = df.fillna(0)
         
-        aktuelle_rg = ""
+        
+        kunde= ""
         erste_zeile = list(df.columns)
         
         if self.validate_csv(erste_zeile):
 
             for row, pos in df.iterrows():
                                
-                if pos['RECHNUNG'] != aktuelle_rg:
+                if pos['Endkunde'] != kunde:
                                             
-                    if aktuelle_rg != "":
+                    if kunde != "":
                         rechnungen.append(rechnung)
                                         
-                    aktuelle_rg = pos['RECHNUNG']
+                    kunde = pos['Endkunde']
                 
                     rechnung = {}
                     #Beginn neuer Rechnung, Kopfdaten auslesen
                     rechnung["kdnr"] =  pos['Endkunde_Reference']
-                    rechnung["adn_rg"] = pos['RECHNUNG']
+                    rechnung["adn_rg"] = str(pos['RECHNUNG'])+ str(pos['Endkunde_Reference'])
                     rechnung["kunde"] = pos['Endkunde']
                     rechnung["art"] = pos['Rechnungsart']
                     rechnung["datum"] = pos['DATUM']
@@ -141,8 +146,11 @@ class ADNImport(Document):
                 else:
                     #für jede weitere Zeile einer Rechnung erkennen wir
                     #die weiteren Positionen
-                    von_dt = datetime.strptime (pos['Wartungsbeginn'],"%d.%m.%Y %H:%M:%S")
-                    bis_dt = datetime.strptime (pos['Wartungsende'],"%d.%m.%Y %H:%M:%S")
+                    von_dt = datetime.strptime (str(pos['Wartungsbeginn']),"%d.%m.%Y %H:%M:%S")
+                    bis_dt = datetime.strptime (str(pos['Wartungsende']),"%d.%m.%Y %H:%M:%S")
+                    # von_dt = pos['Wartungsbeginn']
+                    # bis_dt = pos['Wartungsende']
+                    print(von_dt, bis_dt)
                     time_delta = bis_dt - von_dt 
                                     
                     position = {"artikel": pos['HERSTELLERNUMMER'],
@@ -196,11 +204,11 @@ class ADNImport(Document):
        
     
     def check_adn_invoice_number(self,rechnung):
-        ausgangs_rechnungen =  frappe.get_all("Sales Invoice", filters={"adn_invoice_number": rechnung["adn_rg"] })
+        ausgangs_rechnungen =  frappe.get_all("Sales Invoice", filters={"adn_invoice_number": str(rechnung["adn_rg"])+str(rechnung["kdnr"]) })
         if len(ausgangs_rechnungen) == 0:
             return True
         else:
-            self.log_list.append("Zu der ADN-Rechnungs-Nr.: " + str(rechnung["adn_rg"]) + " existiert bereits eine Rechnung, es wurde keine neue Rechnung erstellt")      
+            self.log_list.append("Für den Kunden: " + rechnung["kunde"] + " existiert bereits eine Rechnung, es wurde keine neue Rechnung erstellt")      
             return False
 
     def create_erpn_invoice(self, rechnungen):
@@ -242,7 +250,7 @@ class ADNImport(Document):
             })
             rechnung_doc.append("taxes", new_tax)
         
-        rechnung_doc.adn_invoice_number = rechnungen["adn_rg"]
+        rechnung_doc.adn_invoice_number = rechnungen["adn_rg"]+rechnungen["kdnr"]
 
         for position in rechnungen["positionen"]:
             artikel_liste = frappe.get_all("Item", filters={"hersteller_artikel_nummer": position["artikel"]})
