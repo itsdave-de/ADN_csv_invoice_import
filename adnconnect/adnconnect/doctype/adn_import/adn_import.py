@@ -122,6 +122,7 @@ class ADNImport(Document):
         
         kunde= ""
         erste_zeile = list(df.columns)
+        print(erste_zeile)
         
         if self.validate_csv(erste_zeile):
 
@@ -188,7 +189,8 @@ class ADNImport(Document):
        'Wartungsbeginn', 'Wartungsende', 'Vertrag', 'Marketplace_Ref',
        'Order_Reference', 'Endkunde_Reference', 'Subscription_ID_External',
        'Subscription_Start_Date', 'Buchungstyp', 'OrderDatum', 'Rechnungsart',
-       'MSERP', 'MSERP_BillingPeriod']
+       'MSERP', 'MSERP_BillingPeriod','BillingPlan', 'VertragsDauer']
+        
         
         if soll_header == erste_zeile:
             self.log_list.append("CSV wurde erfolgreich überprüft")
@@ -276,8 +278,11 @@ class ADNImport(Document):
             
                 von_str = datetime.strftime(position["von"], "%d.%m.%Y")
                 bis_str = datetime.strftime(position["bis"], "%d.%m.%Y")
-                
-                rechnung_doc_artikel.description = artikel_doc.item_name + "<br>Zeitraum von " + von_str+ " bis "+ bis_str + "<br>" + position["vertrag"]
+                if str(position["vertrag"]) != "0":
+                    desc = str(position["vertrag"])
+                else:
+                    desc = ""
+                rechnung_doc_artikel.description = artikel_doc.item_name + "<br>Zeitraum von " + von_str+ " bis "+ bis_str + "<br>" + desc
                 rechnung_doc.append("items", rechnung_doc_artikel)
                 
 
