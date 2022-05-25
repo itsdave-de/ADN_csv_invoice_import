@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2021-07-06 13:25:49.182693",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -6,11 +7,13 @@
  "field_order": [
   "title_and_prefix",
   "title_and_prefix_credit_note",
+  "title_and_prefix_hornet",
   "default_customer",
   "company",
   "payment_terms_template",
   "tc_name",
   "introduction_text",
+  "introduction_text_hornet",
   "taxes_and_charges"
  ],
  "fields": [
@@ -58,10 +61,22 @@
    "fieldtype": "Link",
    "label": "Taxes and Charges",
    "options": "Sales Taxes and Charges Template"
+  },
+  {
+   "fieldname": "title_and_prefix_hornet",
+   "fieldtype": "Data",
+   "label": "Title and Prefix Hornet"
+  },
+  {
+   "fieldname": "introduction_text_hornet",
+   "fieldtype": "Text Editor",
+   "label": "Introduction Text Hornet"
   }
  ],
+ "index_web_pages_for_search": 1,
  "issingle": 1,
- "modified": "2021-08-20 14:10:26.952131",
+ "links": [],
+ "modified": "2022-05-25 08:23:31.666971",
  "modified_by": "Administrator",
  "module": "Adnconnect",
  "name": "ADN Import Settings",

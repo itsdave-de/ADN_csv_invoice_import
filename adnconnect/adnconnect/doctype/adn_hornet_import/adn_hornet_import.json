@@ -1,0 +1,85 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "ADN-H.#####",
+ "creation": "2022-05-24 13:37:38.027803",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "datei",
+  "import_starten",
+  "zustimmung",
+  "log",
+  "status",
+  "rechnungsdatum",
+  "anzahl_der_lizenzen"
+ ],
+ "fields": [
+  {
+   "fieldname": "datei",
+   "fieldtype": "Attach",
+   "label": "Datei"
+  },
+  {
+   "fieldname": "import_starten",
+   "fieldtype": "Button",
+   "label": "Import starten",
+   "options": "do_import"
+  },
+  {
+   "default": "0",
+   "fieldname": "zustimmung",
+   "fieldtype": "Check",
+   "label": "Import auch bei ver\u00e4ndertem CSV-Format durchf\u00fchren? <br> Nach Zustimmung Import erneut durchf\u00fchren"
+  },
+  {
+   "fieldname": "log",
+   "fieldtype": "Long Text",
+   "label": "LOG"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "neu\nfehlerhaft\nerfolgreich"
+  },
+  {
+   "fieldname": "rechnungsdatum",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Eingangsrechnungen"
+  },
+  {
+   "fieldname": "anzahl_der_lizenzen",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Anzahl der Lizenzen"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2022-05-25 08:41:48.919106",
+ "modified_by": "Administrator",
+ "module": "Adnconnect",
+ "name": "ADN Hornet Import",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
