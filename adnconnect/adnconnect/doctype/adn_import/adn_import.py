@@ -263,7 +263,10 @@ class ADNImport(Document):
                 if rechnungen["gs_erforderlich"] == False:
                     
                     menge = position["menge"]*position["wartungsdauer"]/position["gesamtdauer"]
-                    preis = ""
+                    if self.preisentnahme_aus == "ERPNext System":
+                        preis = ""
+                    if self.preisentnahme_aus == "CSV Datei":
+                        preis = position["preis"]
                 else:
                     menge = -position["menge"]
                     preis = -position["preis"]

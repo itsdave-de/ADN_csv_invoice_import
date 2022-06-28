@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "autoname": "ADNI-.##### ",
  "creation": "2021-05-31 21:53:23.974979",
  "doctype": "DocType",
@@ -8,6 +9,7 @@
   "datei",
   "import_starten",
   "zustimmung",
+  "preisentnahme_aus",
   "log",
   "status",
   "rechnungsdatum",
@@ -55,9 +57,17 @@
    "fieldname": "zustimmung",
    "fieldtype": "Check",
    "label": "Import auch bei ver\u00e4ndertem CSV-Format durchf\u00fchren? <br> Nach Zustimmung Import erneut durchf\u00fchren"
+  },
+  {
+   "fieldname": "preisentnahme_aus",
+   "fieldtype": "Select",
+   "label": "Preisentnahme aus",
+   "options": "ERPNext System\nCSV Datei"
   }
  ],
- "modified": "2021-08-20 14:09:27.599544",
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2022-06-28 08:41:58.611193",
  "modified_by": "Administrator",
  "module": "Adnconnect",
  "name": "ADN Import",
