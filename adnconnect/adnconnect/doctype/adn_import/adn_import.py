@@ -25,10 +25,13 @@ class ADNImport(Document):
         count_erfolgreich_erstellte_rechnung = 0
         rechnungen = self.get_invoice_dict_from_csv()
         lizenzen = 0
+        rohertrag = 0
         for rechnung in rechnungen:
             
             #gezählt wird die Gesamtzahl der Lizenzen
             for position in rechnung["positionen"]:
+                rohertrag += (float(position['preis'])*int(position['menge']))
+                print(rohertrag)
                 if float(position["preis"]) > 0: 
                     lizenzen += int(position["menge"])
           
@@ -64,6 +67,7 @@ class ADNImport(Document):
         rechnungsdatum = datetime.strptime(rechnung["datum"],"%d.%m.%Y %H:%M:%S")   
         self.rechnungsdatum = datetime.strftime(rechnungsdatum, "%m.%Y")
         self.anzahl_der_lizenzen = lizenzen
+        self.rohertrag = round(rohertrag,2)
            
         log_list.append(str(count_erfolgreich_erstellte_rechnung) + " Rechnungen wurden erstellt")
         log_str = ""
@@ -138,7 +142,7 @@ class ADNImport(Document):
                     rechnung = {}
                     #Beginn neuer Rechnung, Kopfdaten auslesen
                     rechnung["kdnr"] =  pos['Endkunde_Reference']
-                    rechnung["adn_rg"] = str(pos['RECHNUNG'])+ str(pos['Endkunde_Reference'])
+                    rechnung["adn_rg"] = str(pos['RECHNUNG'])+'-' +str(pos['Endkunde_Reference'])+'-' +str(pos['Endkunde'])
                     rechnung["kunde"] = pos['Endkunde']
                     rechnung["art"] = pos['Rechnungsart']
                     rechnung["datum"] = pos['DATUM']
@@ -206,7 +210,7 @@ class ADNImport(Document):
        
     
     def check_adn_invoice_number(self,rechnung):
-        ausgangs_rechnungen =  frappe.get_all("Sales Invoice", filters={"adn_invoice_number": str(rechnung["adn_rg"])+str(rechnung["kdnr"]) })
+        ausgangs_rechnungen =  frappe.get_all("Sales Invoice", filters={"adn_invoice_number": str(rechnung["adn_rg"]) })
         if len(ausgangs_rechnungen) == 0:
             return True
         else:
@@ -252,7 +256,7 @@ class ADNImport(Document):
             })
             rechnung_doc.append("taxes", new_tax)
         
-        rechnung_doc.adn_invoice_number = rechnungen["adn_rg"]+rechnungen["kdnr"]
+        rechnung_doc.adn_invoice_number = rechnungen["adn_rg"]
 
         for position in rechnungen["positionen"]:
             artikel_liste = frappe.get_all("Item", filters={"hersteller_artikel_nummer": position["artikel"]})
@@ -262,7 +266,8 @@ class ADNImport(Document):
                 artikel_doc = frappe.get_doc("Item", artikel_liste[0]["name"])
                 if rechnungen["gs_erforderlich"] == False:
                     
-                    menge = position["menge"]*position["wartungsdauer"]/position["gesamtdauer"]
+                    #menge = position["menge"]*position["wartungsdauer"]/position["gesamtdauer"]
+                    menge = position["menge"]
                     if self.preisentnahme_aus == "ERPNext System":
                         preis = ""
                     if self.preisentnahme_aus == "CSV Datei":

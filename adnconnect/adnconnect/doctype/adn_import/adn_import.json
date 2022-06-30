@@ -13,7 +13,8 @@
   "log",
   "status",
   "rechnungsdatum",
-  "anzahl_der_lizenzen"
+  "anzahl_der_lizenzen",
+  "rohertrag"
  ],
  "fields": [
   {
@@ -63,11 +64,17 @@
    "fieldtype": "Select",
    "label": "Preisentnahme aus",
    "options": "ERPNext System\nCSV Datei"
+  },
+  {
+   "fieldname": "rohertrag",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Rohertrag"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-06-28 08:41:58.611193",
+ "modified": "2022-06-30 13:13:25.130220",
  "modified_by": "Administrator",
  "module": "Adnconnect",
  "name": "ADN Import",
