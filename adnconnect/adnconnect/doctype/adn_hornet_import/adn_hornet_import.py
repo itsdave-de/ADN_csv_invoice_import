@@ -265,7 +265,12 @@ class ADNHornetImport(Document):
 		rechnung_doc.customer = rechnungen["kdnr"]
 		rechnung_doc.introduction_text = self.settings_doc.introduction_text_hornet
 		rechnung_doc.company = self.settings_doc.company
-		rechnung_doc.payment_terms_template = self.settings_doc.payment_terms_template
+		customer_doc = frappe.get_doc("Customer", rechnungen["kdnr"] )
+        #print(customer_doc.payment_terms)
+		if customer_doc.payment_terms:
+			rechnung_doc.payment_terms_template = customer_doc.payment_terms
+		else:
+			rechnung_doc.payment_terms_template = self.settings_doc.payment_terms_template
 		rechnung_doc.tc_name = self.settings_doc.tc_name
 
 		tac_doc = frappe.get_doc("Terms and Conditions", self.settings_doc.tc_name)
