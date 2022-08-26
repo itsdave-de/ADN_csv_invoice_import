@@ -25,13 +25,14 @@ class ADNImport(Document):
         count_erfolgreich_erstellte_rechnung = 0
         rechnungen = self.get_invoice_dict_from_csv()
         lizenzen = 0
-        rohertrag = 0
+        betrag_ausgangsrechnungen = 0
+        adn_rechnungsbetrag = 0
         for rechnung in rechnungen:
             
             #gezählt wird die Gesamtzahl der Lizenzen
             for position in rechnung["positionen"]:
-                rohertrag += (float(position['preis'])*int(position['menge']))
-                print(rohertrag)
+                betrag_ausgangsrechnungen += (float(position['preis'])*int(position['menge']))
+                adn_rechnungsbetrag += (float(position['positionspreis']))
                 if float(position["preis"]) > 0: 
                     lizenzen += int(position["menge"])
           
@@ -67,7 +68,9 @@ class ADNImport(Document):
         rechnungsdatum = datetime.strptime(rechnung["datum"],"%d.%m.%Y %H:%M:%S")   
         self.rechnungsdatum = datetime.strftime(rechnungsdatum, "%m.%Y")
         self.anzahl_der_lizenzen = lizenzen
-        self.rohertrag = round(rohertrag,2)
+        self.betrag_ausgangrechnungen = round(betrag_ausgangsrechnungen,2)
+        self.adn_rechnungsbetrag = round(adn_rechnungsbetrag,2)
+        self.rohertrag = round(betrag_ausgangsrechnungen - adn_rechnungsbetrag,2)
            
         log_list.append(str(count_erfolgreich_erstellte_rechnung) + " Rechnungen wurden erstellt")
         log_str = ""
@@ -163,6 +166,7 @@ class ADNImport(Document):
                             "bis": bis_dt,  
                             "menge": pos['MENGE'], 
                             "preis": pos['Listpreis'],
+                            "positionspreis": pos['Positionspreis'],
                             "wartungsdauer": time_delta.days+1,
                             "gesamtdauer": calendar.monthrange(von_dt.year,von_dt.month)[1],
                             "vertrag" : pos['Vertrag']
