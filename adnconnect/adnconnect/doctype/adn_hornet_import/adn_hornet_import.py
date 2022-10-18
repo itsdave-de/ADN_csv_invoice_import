@@ -177,8 +177,10 @@ class ADNHornetImport(Document):
 				else:
 					#für jede weitere Zeile einer Rechnung erkennen wir
 					#die weiteren Positionen
-					von_dt = datetime.strptime (str(pos['Wartungsbeginn']),"%d.%m.%Y %H:%M:%S")
-					bis_dt = datetime.strptime (str(pos['Wartungsende']),"%d.%m.%Y %H:%M:%S")
+					von_dt = datetime.strptime (str(pos['Wartungsbeginn']),"%d.%m.%Y %H:%M")
+					bis_dt = datetime.strptime (str(pos['Wartungsende']),"%d.%m.%Y %H:%M")
+					# von_dt = datetime.strptime (str(pos['Wartungsbeginn']),"%d.%m.%Y %H:%M:%S")
+					# bis_dt = datetime.strptime (str(pos['Wartungsende']),"%d.%m.%Y %H:%M:%S")
 					# von_dt = pos['Wartungsbeginn']
 					# bis_dt = pos['Wartungsende']
 					print(von_dt, bis_dt)
