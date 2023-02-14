@@ -283,7 +283,9 @@ class ADNImport(Document):
                         preis = position["preis"]
                 else:
                     menge = -position["menge"]
-                    preis = -position["preis"]
+                    preis_csv = -position["preis"]
+                    preis = preis_csv /0.825
+
 
                 rechnung_doc_artikel = frappe.get_doc({
                     "doctype": "Sales Invoice Item",
