@@ -66,7 +66,8 @@ class ADNImport(Document):
                     self.status = "erfolgreich"
                     self.save()
         
-        rechnungsdatum = datetime.strptime(rechnung["datum"],"%d.%m.%Y %H:%M:%S")   
+        #rechnungsdatum = datetime.strptime(rechnung["datum"],"%d.%m.%Y %H:%M:%S") 
+        rechnungsdatum = self.parse_datetime(str(rechnung["datum"]))  
         self.rechnungsdatum = datetime.strftime(rechnungsdatum, "%m.%Y")
         self.anzahl_der_lizenzen = lizenzen
         self.betrag_ausgangrechnungen = round(betrag_ausgangsrechnungen,2)
@@ -155,10 +156,10 @@ class ADNImport(Document):
                 else:
                     #für jede weitere Zeile einer Rechnung erkennen wir
                     #die weiteren Positionen
-                    von_dt = datetime.strptime (str(pos['Wartungsbeginn']),"%d.%m.%Y %H:%M:%S")
-                    bis_dt = datetime.strptime (str(pos['Wartungsende']),"%d.%m.%Y %H:%M:%S")
-                    # von_dt = pos['Wartungsbeginn']
-                    # bis_dt = pos['Wartungsende']
+                    # von_dt = datetime.strptime (str(pos['Wartungsbeginn']),"%d.%m.%Y %H:%M:%S")
+                    # bis_dt = datetime.strptime (str(pos['Wartungsende']),"%d.%m.%Y %H:%M:%S")
+                    von_dt = self.parse_datetime(str(pos['Wartungsbeginn']))
+                    bis_dt = self.parse_datetime(str(pos['Wartungsende']))
                     print(von_dt, bis_dt)
                     time_delta = bis_dt - von_dt 
                                     
@@ -183,7 +184,15 @@ class ADNImport(Document):
         else:
             frappe.msgprint("ACHTUNG Rechnungen konnten nicht erstellt werden. CSV- Format stimmt nicht mit dem Standartformat überein")
                     
-        
+    def parse_datetime(self,datetime_str):
+        try:
+            # Versuche das Format mit Sekunden
+            return datetime.strptime(datetime_str, "%d.%m.%Y %H:%M:%S")
+        except ValueError:
+            # Fallback auf Format ohne Sekunden
+            return datetime.strptime(datetime_str, "%d.%m.%Y %H:%M") 
+
+
     def validate_csv(self, erste_zeile):
         # Prüfen, ob die csv-Datei das erwartete Format aufweist
          
@@ -393,7 +402,8 @@ class ADNImport(Document):
             "doctype": "Sales Invoice"
         })
 
-        rechnungsdatum = datetime.strptime(rechnungen["datum"], "%d.%m.%Y %H:%M:%S")
+        #rechnungsdatum = datetime.strptime(rechnungen["datum"], "%d.%m.%Y %H:%M:%S")
+        rechnungsdatum = self.parse_datetime(str(rechnungen["datum"]))
         rechnungsmonat = datetime.strftime(rechnungsdatum, "%m.%Y")
 
         if rechnungen["gs_erforderlich"]:
@@ -484,18 +494,6 @@ class ADNImport(Document):
                             rechnung_doc,
                             artikel_doc.name,
                             restliche_menge,
-                            preis,
-                            von=position["von"],
-                            bis=position["bis"],
-                            vertrag=position["vertrag"]
-                        )
-
-                    # Normale Position, wenn keine Inklusivleistung vorhanden
-                    if inkludierte_menge == 0:
-                        self.add_item_to_invoice(
-                            rechnung_doc,
-                            artikel_doc.name,
-                            menge,
                             preis,
                             von=position["von"],
                             bis=position["bis"],
