@@ -43,7 +43,7 @@ class ADNImport(Document):
                 customer_exists = self.check_erpn_customer(rechnung["kdnr"])
                                     
                 if not customer_exists:
-                    #wenn die csv-Datei keine Endkundenreferenz enthält, 
+                    #wenn die csv-Datei keine ENDKUNDEnreferenz enthält, 
                     # Rechnung für default_customer vorbereiten
                     rechnung["kdnr"] = self.settings_doc.default_customer
                     log_list.append("ADN-Rechnung " + str(rechnung["adn_rg"]) + " für Kunden " + str(rechnung["kunde"]) + " ist vorbereitet, kann aber nicht eindeutig zugeordnet werden")
@@ -67,7 +67,7 @@ class ADNImport(Document):
                     self.save()
         
         #rechnungsdatum = datetime.strptime(rechnung["datum"],"%d.%m.%Y %H:%M:%S") 
-        rechnungsdatum = self.parse_datetime(str(rechnung["datum"]))  
+        rechnungsdatum = self.parse_datetime_robust(str(rechnung["datum"])) 
         self.rechnungsdatum = datetime.strftime(rechnungsdatum, "%m.%Y")
         self.anzahl_der_lizenzen = lizenzen
         self.betrag_ausgangrechnungen = round(betrag_ausgangsrechnungen,2)
@@ -134,23 +134,29 @@ class ADNImport(Document):
         print(erste_zeile)
         
         if self.validate_csv(erste_zeile):
+            # Spalten normalisieren (für robusten Zugriff)
+            normalized_columns = {}
+            for col in df.columns:
+                normalized_columns[col] = col  # Ursprünglicher Name
+                normalized_columns[col.lower()] = col  # Kleingeschrieben
+                normalized_columns[col.upper()] = col  # Großgeschrieben
 
             for row, pos in df.iterrows():
                                
-                if pos['Endkunde'] != kunde:
+                if self.get_column_value(pos, 'ENDKUNDE', normalized_columns) != kunde:
                                             
                     if kunde != "":
                         rechnungen.append(rechnung)
                                         
-                    kunde = pos['Endkunde']
+                    kunde = self.get_column_value(pos, 'ENDKUNDE', normalized_columns)
                 
                     rechnung = {}
                     #Beginn neuer Rechnung, Kopfdaten auslesen
-                    rechnung["kdnr"] =  pos['Endkunde_Reference']
-                    rechnung["adn_rg"] = str(pos['RECHNUNG'])+'-' +str(pos['Endkunde_Reference'])+'-' +str(pos['Endkunde'])
-                    rechnung["kunde"] = pos['Endkunde']
-                    rechnung["art"] = pos['Rechnungsart']
-                    rechnung["datum"] = pos['DATUM']
+                    rechnung["kdnr"] =  self.get_column_value(pos, 'ENDKUNDE_Reference', normalized_columns)
+                    rechnung["adn_rg"] = str(self.get_column_value(pos, 'RECHNUNG', normalized_columns))+'-' +str(self.get_column_value(pos, 'ENDKUNDE_Reference', normalized_columns))+'-' +str(self.get_column_value(pos, 'ENDKUNDE', normalized_columns))
+                    rechnung["kunde"] = self.get_column_value(pos, 'ENDKUNDE', normalized_columns)
+                    rechnung["art"] = self.get_column_value(pos, 'RECHNUNGSART', normalized_columns)
+                    rechnung["datum"] = self.get_column_value(pos, 'DATUM', normalized_columns)
                     rechnung["positionen"] = []
                     rechnung["gs_erforderlich"] = False   
                 else:
@@ -158,22 +164,22 @@ class ADNImport(Document):
                     #die weiteren Positionen
                     # von_dt = datetime.strptime (str(pos['Wartungsbeginn']),"%d.%m.%Y %H:%M:%S")
                     # bis_dt = datetime.strptime (str(pos['Wartungsende']),"%d.%m.%Y %H:%M:%S")
-                    von_dt = self.parse_datetime(str(pos['Wartungsbeginn']))
-                    bis_dt = self.parse_datetime(str(pos['Wartungsende']))
+                    von_dt = self.parse_datetime_robust(self.get_column_value(pos, 'Wartungsbeginn', normalized_columns))
+                    bis_dt = self.parse_datetime_robust(self.get_column_value(pos, 'Wartungsende', normalized_columns))
                     print(von_dt, bis_dt)
-                    time_delta = bis_dt - von_dt 
+                    time_delta = bis_dt - von_dt if von_dt and bis_dt else 0
                                     
-                    position = {"artikel": pos['HERSTELLERNUMMER'],
+                    position = {"artikel": self.get_column_value(pos, 'HERSTELLERNUMMER', normalized_columns),
                             "von": von_dt,
                             "bis": bis_dt,  
-                            "menge": pos['MENGE'], 
-                            "preis": pos['Listpreis'],
-                            "positionspreis": pos['Positionspreis'],
-                            "wartungsdauer": time_delta.days+1,
-                            "gesamtdauer": calendar.monthrange(von_dt.year,von_dt.month)[1],
-                            "vertrag" : pos['Vertrag']
+                            "menge": self.get_column_value(pos, 'MENGE', normalized_columns), 
+                            "preis": self.get_column_value(pos, 'Listpreis', normalized_columns),
+                            "positionspreis": self.get_column_value(pos, 'Positionspreis', normalized_columns),
+                            "wartungsdauer": time_delta.days+1 if time_delta else 0,
+                            "gesamtdauer": calendar.monthrange(von_dt.year,von_dt.month)[1] if von_dt else 0,
+                            "vertrag" : self.get_column_value(pos, 'Vertrag', normalized_columns)
                             }
-                    if float(pos['Listpreis'])<0:
+                    if float(self.get_column_value(pos, 'Listpreis', normalized_columns))<0:
                         rechnung["gs_erforderlich"] = True
                                             
                     rechnung["positionen"].append(position)
@@ -184,14 +190,46 @@ class ADNImport(Document):
         else:
             frappe.msgprint("ACHTUNG Rechnungen konnten nicht erstellt werden. CSV- Format stimmt nicht mit dem Standartformat überein")
                     
-    def parse_datetime(self,datetime_str):
-        try:
-            # Versuche das Format mit Sekunden
-            return datetime.strptime(datetime_str, "%d.%m.%Y %H:%M:%S")
-        except ValueError:
-            # Fallback auf Format ohne Sekunden
-            return datetime.strptime(datetime_str, "%d.%m.%Y %H:%M") 
 
+
+    def get_column_value(self, row_data, column_name, normalized_columns=None, default_value=""):
+        """Robuster Spaltenzugriff mit Fallback-Logik für verschiedene Schreibweisen"""
+        # Direkter Versuch
+        if column_name in row_data:
+            return row_data[column_name]
+        
+        # Fallback: Groß-/Kleinschreibung ignorieren
+        if normalized_columns:
+            for col in normalized_columns:
+                if col.lower() == column_name.lower():
+                    return row_data[col]
+        
+        return default_value
+
+    def parse_datetime_robust(self, datetime_str):
+        """Robustes Datums-Parsing mit mehreren Formaten und Fehlerkorrektur"""
+        if not datetime_str or str(datetime_str) == "0":
+            return None
+            
+        # Fehlerkorrektur: "226.02.2025" → "26.02.2025"
+        if str(datetime_str).startswith("2") and len(str(datetime_str)) > 10:
+            datetime_str = str(datetime_str)[1:]
+        
+        formats = [
+            "%d.%m.%Y %H:%M:%S",  # 26.02.2025 14:30:25
+            "%d.%m.%Y %H:%M",     # 26.02.2025 14:30
+            "%d.%m.%Y",            # 26.02.2025
+        ]
+        
+        for fmt in formats:
+            try:
+                return datetime.strptime(str(datetime_str), fmt)
+            except ValueError:
+                continue
+        
+        # Fallback: Aktuelles Datum
+        frappe.log_error(f"Konnte Datum nicht parsen: {datetime_str}")
+        return datetime.now()
 
     def validate_csv(self, erste_zeile):
         # Prüfen, ob die csv-Datei das erwartete Format aufweist
@@ -201,12 +239,12 @@ class ADNImport(Document):
        'RE_PLZ', 'RE_ORT', 'RE_LAND', 'LI_FIRMA', 'LI_STRASSE', 'LI_PLZ',
        'LI_ORT', 'LI_LAND', 'HA_FIRMA', 'HA_STRASSE', 'HA_PLZ', 'HA_ORT',
        'HA_LAND', 'Warenwert', 'MWst', 'Gesamtbetrag', 'NettoZahlbarBis',
-       'Lieferbedingungen', 'Zahlungsbedingung', 'Endkunde', 'POSITION',
+       'Lieferbedingungen', 'Zahlungsbedingung', 'ENDKUNDE', 'POSITION',
        'ARTIKEL', 'HERSTELLERNUMMER', 'ARTIKELBEZ', 'MENGE', 'PREISME',
        'Listpreis', 'Rabatt', 'Einzelpreis', 'Positionspreis',
        'Wartungsbeginn', 'Wartungsende', 'Vertrag', 'Marketplace_Ref',
-       'Order_Reference', 'Endkunde_Reference', 'Subscription_ID_External',
-       'Subscription_Start_Date', 'Buchungstyp', 'OrderDatum', 'Rechnungsart',
+       'Order_Reference', 'ENDKUNDE_Reference', 'Subscription_ID_External',
+       'Subscription_Start_Date', 'Buchungstyp', 'OrderDatum', 'RECHNUNGSART',
        'MSERP', 'MSERP_BillingPeriod','BillingPlan', 'VertragsDauer']
         
         
@@ -403,7 +441,7 @@ class ADNImport(Document):
         })
 
         #rechnungsdatum = datetime.strptime(rechnungen["datum"], "%d.%m.%Y %H:%M:%S")
-        rechnungsdatum = self.parse_datetime(str(rechnungen["datum"]))
+        rechnungsdatum = self.parse_datetime_robust(str(rechnungen["datum"]))
         rechnungsmonat = datetime.strftime(rechnungsdatum, "%m.%Y")
 
         if rechnungen["gs_erforderlich"]:
